@@ -5,7 +5,6 @@ import random
 import time
 import itertools
 
-
 ###############
 ### GLOBALS ###
 ###############
@@ -55,15 +54,18 @@ class PlayingField:
         self.right3 = right3
         self.right4 = right4
         choice = random.randint(0,2)
+        # if choice == 0:
+        #     print("constant sanding")
+        #     self.sanding = self.const_sand()
         if choice == 0:
-            print("constant sanding")
-            self.sanding = self.const_sand()
-        elif choice == 1:
             print('slow mid sanding')
             self.sanding = self.slow_mid()
-        elif choice == 2:
+        elif choice == 1:
             print("slow outer sanding")
             self.sanding = self.slow_outer()
+        elif choice == 2:
+            print("staggered sanding")
+            self.sanding = self.staggered()
 
     def const_sand(self):
         mu = random.uniform(0.1,0.25)
@@ -96,6 +98,21 @@ class PlayingField:
                 return mu2
         return sand_func
 
+    def staggered(self):
+        mu1 = random.uniform(0.1,0.2)
+        mu2 = random.uniform(0.2,0.25)
+        mu3 = random.uniform(0.25,0.3)
+        print("middle zone: ", mu1)
+        print("1 and 2 pt: ", mu2)
+        print("3 and 4 pt: ", mu3)
+        def sand_func(pos):
+            if self.left1 < pos[0] > self.right1:
+                return mu1
+            elif self.left4 < pos[0] < self.left2 or self.right2 < pos[0] < self.right4:
+                return mu2
+            else:
+                return mu3
+        return sand_func
 
 class Puck:
     def __init__(self,num,pos,vel=np.array([0,0])):
@@ -197,7 +214,6 @@ def writeScore(screen,margin):
     screen.blit(p1Score_text, (screenWidth//3,margin//2-10))
     screen.blit(p2Score_text, (2*screenWidth//3,margin//2-10))
 
-
 def drawPuck(screen,puck):
     pos = puck.pos
     x = int(pos[0])
@@ -259,6 +275,31 @@ def pucksMovingTogether(puck1,puck2):
         return True
     return False
 
+##ths is for a perfectly elastic collision
+# def collision(puck1,puck2):
+#     dist = np.linalg.norm(puck1.pos - puck2.pos)
+#     if dist < puck1.radius + puck2.radius and pucksMovingTogether(puck1, puck2):
+#         puck1.rest = False
+#         puck2.rest = False
+#         displacement = puck2.pos - puck1.pos
+#         normal = displacement/np.linalg.norm(displacement)
+#         tangent = np.array([-1*normal[1],normal[0]])
+#         v1n = np.dot(normal,puck1.vel)
+#         v1t = np.dot(tangent,puck1.vel)
+#         v2n = np.dot(normal,puck2.vel)
+#         v2t = np.dot(tangent,puck2.vel)
+#         v1n_new = (v2n)/(puck1.mass)
+#         v2n_new = (v1n)/(puck2.mass)
+#
+#         V1n = v1n_new*normal
+#         V1t = v1t*tangent
+#         V2n = v2n_new*normal
+#         V2t = v2t*tangent
+#
+#         puck1.vel = V1n + V1t
+#         puck2.vel = V2n + V2t
+
+##this is for a partially inelastic collision
 def collision(puck1,puck2):
     dist = np.linalg.norm(puck1.pos - puck2.pos)
     if dist < puck1.radius + puck2.radius and pucksMovingTogether(puck1, puck2):
@@ -271,8 +312,10 @@ def collision(puck1,puck2):
         v1t = np.dot(tangent,puck1.vel)
         v2n = np.dot(normal,puck2.vel)
         v2t = np.dot(tangent,puck2.vel)
-        v1n_new = (v2n)/(puck1.mass)
-        v2n_new = (v1n)/(puck2.mass)
+
+        CR = 0.7 #this is coefficient of restitution. 1 if perfectly elastic and 0 if perfectly inelastic
+        v1n_new = (CR*(v2n-v1n) + v1n + v2n)/2
+        v2n_new = (CR*(v1n-v2n) + v1n+v2n)/2
 
         V1n = v1n_new*normal
         V1t = v1t*tangent
@@ -532,7 +575,6 @@ while not done:
             p2Score = 0
             p1Win = False
             gameNum = 0
-
+            playingField = PlayingField(left_1,left_2,left_3,left_4,right_1,right_2,right_3,right_4)
 
     pygame.display.update()
-
