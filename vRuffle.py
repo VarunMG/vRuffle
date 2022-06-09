@@ -23,7 +23,7 @@ def unitVec(v):
     return v/np.linalg.norm(v)
 
 def num2Color(number):
-    if number % 2 == 0:
+    if number % 2 == 1:
         return (0,0,255)
     else:
         return (255,0,0)
@@ -189,6 +189,14 @@ def drawBoard(screen,screenWidth,screenHeight,margin):
     screen.blit(FourText, ((right_4 + screenWidth-margin) // 2, screenHeight // 2))
     screen.blit(FourText, ((margin + left_4) // 2, screenHeight // 2))
 
+def writeScore(screen,margin):
+    scoreFont = pygame.font.SysFont("Comic Sans MS", 35)
+    p1Score_text = scoreFont.render("Player 1: " + str(p1Score),False,(255,255,255))
+    p2Score_text = scoreFont.render("Player 2: " + str(p2Score), False, (255, 255, 255))
+
+    screen.blit(p1Score_text, (screenWidth//3,margin//2-10))
+    screen.blit(p2Score_text, (2*screenWidth//3,margin//2-10))
+
 
 def drawPuck(screen,puck):
     pos = puck.pos
@@ -202,18 +210,30 @@ def allRested(puck_collection):
             return False
     return True
 
-def score_right(puck):
+def score(puck):
     x = puck.pos[0]
-    if screenWidth-margin > x >= right_4:
-        return 4
-    elif right_4 > x >= right_3:
-        return 3
-    elif right_3 > x >= right_2:
-        return 2
-    elif right_2 > x >= right_1:
-        return 1
+    if shootRight:
+        if screenWidth-margin > x >= right_4:
+            return 4
+        elif right_4 > x >= right_3:
+            return 3
+        elif right_3 > x >= right_2:
+            return 2
+        elif right_2 > x >= right_1:
+            return 1
+        else:
+            return 0
     else:
-        return 0
+        if left_2 < x <= left_1:
+            return 1
+        elif left_3 < x <= left_2:
+            return 2
+        elif left_4 < x <= left_3:
+            return 3
+        elif margin < x <= left_4:
+            return 4
+        else:
+            return 0
 
 def onBoard(puck):
     x = puck.pos[0]
@@ -238,17 +258,6 @@ def pucksMovingTogether(puck1,puck2):
     if dist2 < dist1:
         return True
     return False
-
-
-# def collision(puck1,puck2):
-#     dist = np.linalg.norm(puck1.pos-puck2.pos)
-#     if dist < puck1.radius + puck2.radius and pucksMovingTogether(puck1,puck2):
-#         numerator1 = np.dot(puck1.vel - puck2.vel, puck1.pos - puck2.pos)
-#         denom1 = (np.linalg.norm(puck1.pos - puck2.pos)) ** 2
-#         puck1.vel = puck1.vel - (numerator1 / denom1) * (puck1.pos - puck2.pos)
-#         numerator2 = np.dot(puck2.vel - puck1.vel, puck2.pos - puck1.pos)
-#         denom2 = (np.linalg.norm(puck2.pos - puck1.pos)) ** 2
-#         puck2.vel = puck2.vel - (numerator2 / denom2) * (puck2.pos - puck1.pos)
 
 def collision(puck1,puck2):
     dist = np.linalg.norm(puck1.pos - puck2.pos)
@@ -320,9 +329,12 @@ headingFont = pygame.font.SysFont('Comic Sans MS',30)
 
 #game modes and submodes
 done = False
+shootRight = True
+p1Win = False
 mode = 'splash'
 submode = ''
 gameType = ''
+
 
 #keeps track of pucks that are in play or not
 activePucks = []
@@ -330,7 +342,14 @@ inactivePucks = []
 
 
 #puck numbering
-num = 0
+num = 1
+
+#scores
+p1Score = 0
+p2Score = 0
+
+#keeps track of how many games have gone by
+gameNum = 0
 
 while not done:
     #need this to be able to close window with no issues
@@ -393,22 +412,60 @@ while not done:
 
             #if all rested, resets for a new aiming/shooting turn
             else:
-                for puck in activePucks:
-                    score = score_right(puck)
-                    print(puck)
-                    print(score)
-                    print("---------")
+                #if num % 8 == 7:
+                if num % 8 == 0 and num != 0:
+                    submode = 'round_over'
+                    score1 = 0
+                    score2 = 0
+                    for puck in activePucks:
+                        if puck.num % 2 == 1:
+                            score1 += score(puck)
+                        else:
+                            score2 += score(puck)
+                    p1Score += score1
+                    p2Score += score2
+                    if gameType == 'SD':
+                        if p1Score >= 11 and p1Score - p2Score >= 2:
+                            p1Win = True
+                            mode = 'gameOver'
+                            submode = ''
+                        elif p2Score >= 11 and p2Score - p1Score >= 2:
+                            p1Win = False
+                            mode = 'gameOver'
+                            submode = ''
+                    elif gameType == 'bo3':
+                        pass
                 #new puck for aiming is initialized
+                else:
+                    submode = 'aiming'
+                    num += 1
+                    if shootRight:
+                        newPuck = Puck(num, np.array([margin, screenHeight // 2]), np.array([0, 0]))
+                    else:
+                        newPuck = Puck(num, np.array([screenWidth-margin,screenHeight//2]),np.array([0,0]))
+
+        if submode == 'round_over':
+            if button('Next Round?', (255, 0, 0), screenWidth // 2-75, screenHeight // 2-35, 150, 70):
+                inactivePucks = []
+                activePucks = []
+                shootRight = not shootRight
                 submode = 'aiming'
                 num += 1
-                newPuck = Puck(num, np.array([margin, screenHeight // 2]), np.array([0, 0]))
+                if shootRight:
+                    newPuck = Puck(num, np.array([margin, screenHeight // 2]), np.array([0, 0]))
+                else:
+                    newPuck = Puck(num, np.array([screenWidth - margin, screenHeight // 2]), np.array([0, 0]))
+                time.sleep(0.2)
+
 
         for puck in activePucks:
             drawPuck(screen, puck)
+        writeScore(screen, margin)
 
     #super simple splash screen
     elif mode == 'splash':
         pygame.init()
+        screen.fill((0,0,0))
         if button('Play Ruffle', (255, 0, 0), screenWidth // 2-125, screenHeight//2-25, 250, 50):
             mode = 'choose_game_type'
             submode = ''
@@ -439,6 +496,43 @@ while not done:
             newPuck = Puck(num, np.array([margin, screenHeight // 2]), np.array([0, 0]))
             #need this short sleep or else immediately shoots a puck
             time.sleep(0.2)
+
+    elif mode == 'gameOver':
+        screen.fill((0, 0, 0))
+        drawBoard(screen, screenWidth, screenHeight, margin)
+        for puck in activePucks:
+            drawPuck(screen, puck)
+        writeScore(screen, margin)
+
+        s = pygame.Surface((screenWidth, screenHeight), pygame.SRCALPHA)
+        s.fill((100, 255, 255, 100))
+        screen.blit(s, (0, 0))
+
+
+        gg_text = titleFont.render('GAME OVER',False,(0,0,0))
+        score_text = headingFont.render(str(p1Score)+ ' - ' + str(p2Score),False,(0,0,0))
+
+        screen.blit(gg_text,(screenWidth//2,screenHeight//4))
+        screen.blit(score_text,(screenWidth//2,2*screenHeight//4))
+
+        if p1Win:
+            p1Win_text = titleFont.render('Good job player 1',False,(0,0,0))
+            screen.blit(p1Win_text,(screenWidth//2,3*screenHeight//4))
+        else:
+            p2Win_text = titleFont.render('Good job player 2', False, (0, 0, 0))
+            screen.blit(p2Win_text, (screenWidth // 2, 3 * screenHeight // 4))
+
+        if button('Back to Home Menu', (0,0,0),screenWidth//4,screenHeight//2,200,50):
+            mode = 'splash'
+            submode = ''
+            activePucks = []
+            inactivePucks = []
+            num = 1
+            p1Score = 0
+            p2Score = 0
+            p1Win = False
+            gameNum = 0
+
 
     pygame.display.update()
 
