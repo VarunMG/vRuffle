@@ -512,6 +512,29 @@ while not done:
                             p1Scores.append(p1Score)
                             p2Scores.append(p2Score)
 
+                    elif gameType == 'bo5':
+                        if p1Score >= 21 and p1Score - p2Score >= 2:
+                            p1GameWins += 1
+                            gameNum += 1
+                            if p1GameWins == 3:
+                                p1Win = True
+                                mode = 'gameOver'
+                                submode = ''
+                            else:
+                                submode = 'next_game'
+                            p1Scores.append(p1Score)
+                            p2Scores.append(p2Score)
+                        elif p2Score >= 21 and p2Score - p1Score >= 2:
+                            gameNum += 1
+                            if gameNum - p1GameWins == 3:
+                                p1Win = False
+                                mode = 'gameOver'
+                                submode = ''
+                            else:
+                                submode = 'next_game'
+                            p1Scores.append(p1Score)
+                            p2Scores.append(p2Score)
+
                 #new puck for aiming is initialized
                 else:
                     submode = 'aiming'
@@ -616,7 +639,7 @@ while not done:
             screen.blit(score_text,(screenWidth//2,2*screenHeight//4))
 
         #game over screen for best of 3
-        elif gameType == 'bo3':
+        elif gameType == 'bo3' or gameType == 'bo5':
             gg_text = titleFont.render('GAME OVER', False, (0, 0, 0))
             score_string = ''
             for i in range(len(p1Scores)):
