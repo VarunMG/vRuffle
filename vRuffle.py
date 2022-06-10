@@ -385,13 +385,14 @@ inactivePucks = []
 
 
 #puck numbering
-num = 1
+num = 0
 
 #scores
 p1Score = 0
 p2Score = 0
 
 #keeps track of how many games have gone by
+shotCount = 0
 gameNum = 0
 
 while not done:
@@ -423,6 +424,10 @@ while not done:
 
             #to shoot the puck
             if pygame.mouse.get_pressed()[0]:
+                #shot happened
+                shotCount += 1
+                print(shotCount)
+
                 #determines direction and velocity of puck shot
                 direction = np.array(mousePos) - newPuck.pos
                 vel = min(np.linalg.norm(np.array(direction) / 10),150)
@@ -455,8 +460,7 @@ while not done:
 
             #if all rested, resets for a new aiming/shooting turn
             else:
-                #if num % 8 == 7:
-                if num % 8 == 0 and num != 0:
+                if shotCount % 8 == 0 and num != 0:
                     submode = 'round_over'
                     score1 = 0
                     score2 = 0
@@ -493,7 +497,8 @@ while not done:
                 activePucks = []
                 shootRight = not shootRight
                 submode = 'aiming'
-                num += 1
+                num += 2
+                shotCount = 0
                 if shootRight:
                     newPuck = Puck(num, np.array([margin, screenHeight // 2]), np.array([0, 0]))
                 else:
@@ -570,7 +575,7 @@ while not done:
             submode = ''
             activePucks = []
             inactivePucks = []
-            num = 1
+            num = 0
             p1Score = 0
             p2Score = 0
             p1Win = False
