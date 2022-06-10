@@ -394,6 +394,11 @@ p2Score = 0
 #keeps track of how many games have gone by
 shotCount = 0
 gameNum = 0
+p1GameWins = 0
+
+#keeps track of scores for best of 3 and best of 5 matches
+p1Scores = []
+p2Scores = []
 
 while not done:
     #need this to be able to close window with no issues
@@ -471,6 +476,8 @@ while not done:
                             score2 += score(puck)
                     p1Score += score1
                     p2Score += score2
+
+                    #scoring convention for sudden death
                     if gameType == 'SD':
                         if p1Score >= 11 and p1Score - p2Score >= 2:
                             p1Win = True
@@ -480,8 +487,31 @@ while not done:
                             p1Win = False
                             mode = 'gameOver'
                             submode = ''
+
+                    #scoring convention for best of 3
                     elif gameType == 'bo3':
-                        pass
+                        if p1Score >= 21 and p1Score - p2Score >= 2:
+                            p1GameWins += 1
+                            gameNum += 1
+                            if p1GameWins == 2:
+                                p1Win = True
+                                mode = 'gameOver'
+                                submode = ''
+                            else:
+                                submode = 'next_game'
+                            p1Scores.append(p1Score)
+                            p2Scores.append(p2Score)
+                        elif p2Score >= 21 and p2Score - p1Score >= 2:
+                            gameNum += 1
+                            if gameNum - p1GameWins == 2:
+                                p1Win = False
+                                mode = 'gameOver'
+                                submode = ''
+                            else:
+                                submode = 'next_game'
+                            p1Scores.append(p1Score)
+                            p2Scores.append(p2Score)
+
                 #new puck for aiming is initialized
                 else:
                     submode = 'aiming'
@@ -492,6 +522,9 @@ while not done:
                         newPuck = Puck(num, np.array([screenWidth-margin,screenHeight//2]),np.array([0,0]))
 
         if submode == 'round_over':
+            s = pygame.Surface((screenWidth, screenHeight), pygame.SRCALPHA)
+            s.fill((255, 255, 255, 100))
+            screen.blit(s, (0, 0))
             if button('Next Round?', (255, 0, 0), screenWidth // 2-75, screenHeight // 2-35, 150, 70):
                 inactivePucks = []
                 activePucks = []
@@ -505,6 +538,24 @@ while not done:
                     newPuck = Puck(num, np.array([screenWidth - margin, screenHeight // 2]), np.array([0, 0]))
                 time.sleep(0.2)
 
+        if submode == 'next_game':
+            s = pygame.Surface((screenWidth, screenHeight), pygame.SRCALPHA)
+            s.fill((255, 255, 255, 100))
+            screen.blit(s, (0, 0))
+            if button('Next Game?', (255, 0, 0), screenWidth // 2-75, screenHeight // 2-35, 150, 70):
+                inactivePucks = []
+                activePucks = []
+                shootRight = not shootRight
+                submode = 'aiming'
+                num = 0
+                shotCount = 0
+                p1Score = 0
+                p2Score = 0
+                if shootRight:
+                    newPuck = Puck(num, np.array([margin, screenHeight // 2]), np.array([0, 0]))
+                else:
+                    newPuck = Puck(num, np.array([screenWidth - margin, screenHeight // 2]), np.array([0, 0]))
+                time.sleep(0.2)
 
         for puck in activePucks:
             drawPuck(screen, puck)
@@ -556,16 +607,29 @@ while not done:
         s.fill((100, 255, 255, 100))
         screen.blit(s, (0, 0))
 
+        #game over screen for sudden death
+        if gameType == 'SD':
+            gg_text = titleFont.render('GAME OVER',False,(0,0,0))
+            score_text = headingFont.render(str(p1Score)+ ' - ' + str(p2Score),False,(0,0,0))
 
-        gg_text = titleFont.render('GAME OVER',False,(0,0,0))
-        score_text = headingFont.render(str(p1Score)+ ' - ' + str(p2Score),False,(0,0,0))
+            screen.blit(gg_text,(screenWidth//2,screenHeight//4))
+            screen.blit(score_text,(screenWidth//2,2*screenHeight//4))
 
-        screen.blit(gg_text,(screenWidth//2,screenHeight//4))
-        screen.blit(score_text,(screenWidth//2,2*screenHeight//4))
+        #game over screen for best of 3
+        elif gameType == 'bo3':
+            gg_text = titleFont.render('GAME OVER', False, (0, 0, 0))
+            score_string = ''
+            for i in range(len(p1Scores)):
+                p1 = p1Scores[i]
+                p2 = p2Scores[i]
+                score_string = score_string + str(p1) + '-' + str(p2) + '      '
+
+            score_text = headingFont.render(score_string, False, (0, 0, 0))
+            screen.blit(score_text,(screenWidth//2,2*screenHeight//3))
 
         if p1Win:
-            p1Win_text = titleFont.render('Good job player 1',False,(0,0,0))
-            screen.blit(p1Win_text,(screenWidth//2,3*screenHeight//4))
+            p1Win_text = titleFont.render('Good job player 1', False, (0, 0, 0))
+            screen.blit(p1Win_text, (screenWidth // 2, 3 * screenHeight // 4))
         else:
             p2Win_text = titleFont.render('Good job player 2', False, (0, 0, 0))
             screen.blit(p2Win_text, (screenWidth // 2, 3 * screenHeight // 4))
@@ -580,6 +644,7 @@ while not done:
             p2Score = 0
             p1Win = False
             gameNum = 0
+            shotCount = 0
             playingField = PlayingField(left_1,left_2,left_3,left_4,right_1,right_2,right_3,right_4)
 
     pygame.display.update()
