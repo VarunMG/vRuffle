@@ -208,8 +208,8 @@ def drawBoard(screen,screenWidth,screenHeight,margin):
 
 def writeScore(screen,margin):
     scoreFont = pygame.font.SysFont("Comic Sans MS", 35)
-    p1Score_text = scoreFont.render("Player 1: " + str(p1Score),False,(255,255,255))
-    p2Score_text = scoreFont.render("Player 2: " + str(p2Score), False, (255, 255, 255))
+    p1Score_text = scoreFont.render("Blue: " + str(p1Score),False,(255,255,255))
+    p2Score_text = scoreFont.render("Red: " + str(p2Score), False, (255, 255, 255))
 
     screen.blit(p1Score_text, (screenWidth//3,margin//2-10))
     screen.blit(p2Score_text, (2*screenWidth//3,margin//2-10))
@@ -274,30 +274,6 @@ def pucksMovingTogether(puck1,puck2):
     if dist2 < dist1:
         return True
     return False
-
-##ths is for a perfectly elastic collision
-# def collision(puck1,puck2):
-#     dist = np.linalg.norm(puck1.pos - puck2.pos)
-#     if dist < puck1.radius + puck2.radius and pucksMovingTogether(puck1, puck2):
-#         puck1.rest = False
-#         puck2.rest = False
-#         displacement = puck2.pos - puck1.pos
-#         normal = displacement/np.linalg.norm(displacement)
-#         tangent = np.array([-1*normal[1],normal[0]])
-#         v1n = np.dot(normal,puck1.vel)
-#         v1t = np.dot(tangent,puck1.vel)
-#         v2n = np.dot(normal,puck2.vel)
-#         v2t = np.dot(tangent,puck2.vel)
-#         v1n_new = (v2n)/(puck1.mass)
-#         v2n_new = (v1n)/(puck2.mass)
-#
-#         V1n = v1n_new*normal
-#         V1t = v1t*tangent
-#         V2n = v2n_new*normal
-#         V2t = v2t*tangent
-#
-#         puck1.vel = V1n + V1t
-#         puck2.vel = V2n + V2t
 
 ##this is for a partially inelastic collision
 def collision(puck1,puck2):
@@ -374,6 +350,7 @@ headingFont = pygame.font.SysFont('Comic Sans MS',30)
 done = False
 shootRight = True
 p1Win = False
+sandingChanged = False
 mode = 'splash'
 submode = ''
 gameType = ''
@@ -465,8 +442,11 @@ while not done:
 
             #if all rested, resets for a new aiming/shooting turn
             else:
+                #round only lasts 8 shots. Goes to "round_over" submode which asks players if they are ready for next round
                 if shotCount % 8 == 0 and num != 0:
                     submode = 'round_over'
+
+                    #these scores are the scores from that single round
                     score1 = 0
                     score2 = 0
                     for puck in activePucks:
@@ -474,11 +454,14 @@ while not done:
                             score1 += score(puck)
                         else:
                             score2 += score(puck)
+
+                    #actual new total scores from all rounds calculated from the scores from this round
                     p1Score += score1
                     p2Score += score2
 
                     #scoring convention for sudden death
                     if gameType == 'SD':
+                        # if someone gets to >=11 and wins by 2, game over
                         if p1Score >= 11 and p1Score - p2Score >= 2:
                             p1Win = True
                             mode = 'gameOver'
@@ -490,48 +473,76 @@ while not done:
 
                     #scoring convention for best of 3
                     elif gameType == 'bo3':
+                        # if someone gets to >= 21 and wins by 2, current game is over.
+                        # This if statement is for player 1
                         if p1Score >= 21 and p1Score - p2Score >= 2:
                             p1GameWins += 1
                             gameNum += 1
+
+                            #if player 1 reaches 2 game wins, then they have won the match. Takes them to game over screen.
+                            #Otherwise next game starts
                             if p1GameWins == 2:
                                 p1Win = True
                                 mode = 'gameOver'
                                 submode = ''
                             else:
                                 submode = 'next_game'
+
+                            #the final scores from game are kept track of to display at the end of match
                             p1Scores.append(p1Score)
                             p2Scores.append(p2Score)
+
+                        # if someone gets to >= 21 and wins by 2, current game is over.
+                        # This if statement is for player 2
                         elif p2Score >= 21 and p2Score - p1Score >= 2:
                             gameNum += 1
+                            # if player 2 reaches 2 game wins, then they have won the match. Takes them to game over screen.
+                            # Otherwise next game starts
                             if gameNum - p1GameWins == 2:
                                 p1Win = False
                                 mode = 'gameOver'
                                 submode = ''
                             else:
                                 submode = 'next_game'
+
+                            # the final scores from game are kept track of to display at the end of match
                             p1Scores.append(p1Score)
                             p2Scores.append(p2Score)
 
+                    #scoring convention for best of 5
                     elif gameType == 'bo5':
+                        # if someone gets to >= 21 and wins by 2, current game is over.
+                        # This if statement is for player 1
                         if p1Score >= 21 and p1Score - p2Score >= 2:
                             p1GameWins += 1
                             gameNum += 1
+                            # if player 1 reaches 3 game wins, then they have won the match. Takes them to game over screen.
+                            # Otherwise next game starts
                             if p1GameWins == 3:
                                 p1Win = True
                                 mode = 'gameOver'
                                 submode = ''
                             else:
                                 submode = 'next_game'
+
+                            # the final scores from game are kept track of to display at the end of match
                             p1Scores.append(p1Score)
                             p2Scores.append(p2Score)
+
+                        # if someone gets to >= 21 and wins by 2, current game is over.
+                        # This if statement is for player 2
                         elif p2Score >= 21 and p2Score - p1Score >= 2:
                             gameNum += 1
+                            # if player 2 reaches 2 game wins, then they have won the match. Takes them to game over screen.
+                            # Otherwise next game starts
                             if gameNum - p1GameWins == 3:
                                 p1Win = False
                                 mode = 'gameOver'
                                 submode = ''
                             else:
                                 submode = 'next_game'
+
+                            # the final scores from game are kept track of to display at the end of match
                             p1Scores.append(p1Score)
                             p2Scores.append(p2Score)
 
@@ -539,47 +550,76 @@ while not done:
                 else:
                     submode = 'aiming'
                     num += 1
+
+                    #initialize new pucks for the next aiming phase
                     if shootRight:
                         newPuck = Puck(num, np.array([margin, screenHeight // 2]), np.array([0, 0]))
                     else:
                         newPuck = Puck(num, np.array([screenWidth-margin,screenHeight//2]),np.array([0,0]))
 
+        #at the end of the round, it just asks if the players are ready for the next round
         if submode == 'round_over':
             s = pygame.Surface((screenWidth, screenHeight), pygame.SRCALPHA)
             s.fill((255, 255, 255, 100))
             screen.blit(s, (0, 0))
             if button('Next Round?', (255, 0, 0), screenWidth // 2-75, screenHeight // 2-35, 150, 70):
+                #once ready for next round, the active and inactive pucks are reset
                 inactivePucks = []
                 activePucks = []
+
+                #switches what side to shoot from and goes back to aiming phase
                 shootRight = not shootRight
                 submode = 'aiming'
+
+                #num is incremented by 2 so that the color that shot last goes first and shot count is reset
                 num += 2
                 shotCount = 0
+
+                # initialize new pucks for the next aiming phase
                 if shootRight:
                     newPuck = Puck(num, np.array([margin, screenHeight // 2]), np.array([0, 0]))
                 else:
                     newPuck = Puck(num, np.array([screenWidth - margin, screenHeight // 2]), np.array([0, 0]))
                 time.sleep(0.2)
 
+        # at the end of a game, it just asks if the players are ready for the next game
         if submode == 'next_game':
             s = pygame.Surface((screenWidth, screenHeight), pygame.SRCALPHA)
             s.fill((255, 255, 255, 100))
             screen.blit(s, (0, 0))
             if button('Next Game?', (255, 0, 0), screenWidth // 2-75, screenHeight // 2-35, 150, 70):
+                # once ready for next round, the active and inactive pucks are reset
                 inactivePucks = []
                 activePucks = []
+
+                # switches what side to shoot from and goes back to aiming phase
                 shootRight = not shootRight
                 submode = 'aiming'
+
+                #the puck numbering, shot count, and scores are all reset
                 num = 0
                 shotCount = 0
                 p1Score = 0
                 p2Score = 0
+                sandingChanged = False #this lets people know if the sanding has changed or not
+
+                # initialize new pucks for the next aiming phase
                 if shootRight:
                     newPuck = Puck(num, np.array([margin, screenHeight // 2]), np.array([0, 0]))
                 else:
                     newPuck = Puck(num, np.array([screenWidth - margin, screenHeight // 2]), np.array([0, 0]))
                 time.sleep(0.2)
 
+            if button('Change Sanding',(0,0,255), screenWidth//2-75, screenHeight//3 - 50, 150, 70):
+                playingField = PlayingField(left_1, left_2, left_3, left_4, right_1, right_2, right_3, right_4)
+                sandingChanged = True
+
+            if sandingChanged:
+                sandChangeText = headingFont.render('Sanding Changed',False,(0,0,0))
+                screen.blit(sandChangeText, (screenWidth//2,2*screenHeight//3))
+
+        #Draws the pucks and writes the score. This is done at the end of the loop rather than beginning
+        #because it allows any pucks that fell off the table to not be drawn. Otherwise you get some bugs.
         for puck in activePucks:
             drawPuck(screen, puck)
         writeScore(screen, margin)
@@ -593,8 +633,9 @@ while not done:
             submode = ''
             time.sleep(0.2)
 
-
+    #this screen just asks what game type the players have agreed on
     elif mode == 'choose_game_type':
+        #best of 5
         if button('Best of 5',(255,0,0),screenWidth//4-125,screenHeight//2-25,250,50):
             gameType = 'bo5'
             mode = 'play'
@@ -603,6 +644,7 @@ while not done:
             #need this short sleep or else immediately shoots a puck
             time.sleep(0.2)
 
+        #best of 3
         if button('Best of 3',(0,255,0),2 *screenWidth //4 -125, screenHeight//2 - 25, 250,50):
             gameType = 'bo3'
             mode = 'play'
@@ -611,6 +653,7 @@ while not done:
             #need this short sleep or else immediately shoots a puck
             time.sleep(0.2)
 
+        #sudden death
         if button('Sudden Death',(0,0,255),3 * screenWidth //4 - 125, screenHeight//2 - 25, 250,50):
             gameType = 'SD'
             mode = 'play'
@@ -619,18 +662,21 @@ while not done:
             #need this short sleep or else immediately shoots a puck
             time.sleep(0.2)
 
+    #game over screen for when someone wins
     elif mode == 'gameOver':
+        #the final arrangement of pucks is shown in the background for players to still see
         screen.fill((0, 0, 0))
         drawBoard(screen, screenWidth, screenHeight, margin)
         for puck in activePucks:
             drawPuck(screen, puck)
         writeScore(screen, margin)
 
+        #a slightly see-through surface so u can still see the pucks and board
         s = pygame.Surface((screenWidth, screenHeight), pygame.SRCALPHA)
         s.fill((100, 255, 255, 100))
         screen.blit(s, (0, 0))
 
-        #game over screen for sudden death
+        #game over screen for sudden death just shows final score
         if gameType == 'SD':
             gg_text = titleFont.render('GAME OVER',False,(0,0,0))
             score_text = headingFont.render(str(p1Score)+ ' - ' + str(p2Score),False,(0,0,0))
@@ -638,7 +684,7 @@ while not done:
             screen.blit(gg_text,(screenWidth//2,screenHeight//4))
             screen.blit(score_text,(screenWidth//2,2*screenHeight//4))
 
-        #game over screen for best of 3
+        #game over screen for best of 3 and best of 5 shows all the scores from all games
         elif gameType == 'bo3' or gameType == 'bo5':
             gg_text = titleFont.render('GAME OVER', False, (0, 0, 0))
             score_string = ''
@@ -650,16 +696,20 @@ while not done:
             score_text = headingFont.render(score_string, False, (0, 0, 0))
             screen.blit(score_text,(screenWidth//2,2*screenHeight//3))
 
+        #some text to say congrats to who won
         if p1Win:
-            p1Win_text = titleFont.render('Good job player 1', False, (0, 0, 0))
+            p1Win_text = titleFont.render('Good job Blue', False, (0, 0, 0))
             screen.blit(p1Win_text, (screenWidth // 2, 3 * screenHeight // 4))
         else:
-            p2Win_text = titleFont.render('Good job player 2', False, (0, 0, 0))
+            p2Win_text = titleFont.render('Good job Red', False, (0, 0, 0))
             screen.blit(p2Win_text, (screenWidth // 2, 3 * screenHeight // 4))
 
+        #takes u back to splash screen so u can play again if u wish
         if button('Back to Home Menu', (0,0,0),screenWidth//4,screenHeight//2,200,50):
             mode = 'splash'
             submode = ''
+
+            #game state is fully reset along with scores and a new playing field is made
             activePucks = []
             inactivePucks = []
             num = 0
