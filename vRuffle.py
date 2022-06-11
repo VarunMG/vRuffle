@@ -171,21 +171,21 @@ def button(text,color,x0,y0,w,h):
 ### Draw Board ###
 ##################
 
-def drawBoard(screen,screenWidth,screenHeight,margin):
+def drawBoard(screen,tableWidth,tableHeight,margin):
     ##draws the underlying board
-    pygame.draw.rect(screen, (245, 225, 169), pygame.Rect(margin, margin, screenWidth - 2 * margin, screenHeight - 2 * margin))
+    pygame.draw.rect(screen, (245, 225, 169), pygame.Rect(margin, margin, tableWidth, tableHeight))
 
     ##draws the left side point regions
-    pygame.draw.line(screen, (255,0,0), (left_1,margin), (left_1,screenHeight-margin))
-    pygame.draw.line(screen, (0,0,0), (left_2,margin), (left_2,screenHeight-margin))
-    pygame.draw.line(screen, (0,0,0), (left_3,margin), (left_3,screenHeight-margin))
-    pygame.draw.line(screen, (0,0,0), (left_4,margin), (left_4,screenHeight-margin))
+    pygame.draw.line(screen, (255,0,0), (left_1,margin), (left_1,margin + tableHeight))
+    pygame.draw.line(screen, (0,0,0), (left_2,margin), (left_2,margin + tableHeight))
+    pygame.draw.line(screen, (0,0,0), (left_3,margin), (left_3,margin + tableHeight))
+    pygame.draw.line(screen, (0,0,0), (left_4,margin), (left_4,margin + tableHeight))
 
     ##draws the right side point regions
-    pygame.draw.line(screen, (0,0,0), (right_4,margin), (right_4,screenHeight-margin))
-    pygame.draw.line(screen, (0,0,0), (right_3,margin), (right_3,screenHeight-margin))
-    pygame.draw.line(screen, (0,0,0), (right_2,margin), (right_2,screenHeight-margin))
-    pygame.draw.line(screen, (255, 0, 0), (right_1,margin), (right_1,screenHeight-margin))
+    pygame.draw.line(screen, (0,0,0), (right_4,margin), (right_4,margin + tableHeight))
+    pygame.draw.line(screen, (0,0,0), (right_3,margin), (right_3,margin + tableHeight))
+    pygame.draw.line(screen, (0,0,0), (right_2,margin), (right_2,margin + tableHeight))
+    pygame.draw.line(screen, (255, 0, 0), (right_1,margin), (right_1,margin + tableHeight))
 
     ##putting the labels
     tableFont = pygame.font.SysFont("Comic Sans MS", 30)
@@ -194,17 +194,52 @@ def drawBoard(screen,screenWidth,screenHeight,margin):
     TwoText = tableFont.render("2", False, (0,0,0))
     ThreeText = tableFont.render("3", False, (0,0,0))
     FourText = tableFont.render("4", False, (0,0,0))
-    screen.blit(OneText, ((right_1+right_2)//2, screenHeight//2))
-    screen.blit(OneText, ((left_1+left_2)//2, screenHeight//2))
+    screen.blit(OneText, ((right_1+right_2)//2, tableHeight//2 + margin))
+    screen.blit(OneText, ((left_1+left_2)//2, tableHeight//2 + margin))
 
-    screen.blit(TwoText, ((right_2+right_3)//2, screenHeight//2))
-    screen.blit(TwoText, ((left_2 + left_3) // 2, screenHeight // 2))
+    screen.blit(TwoText, ((right_2+right_3)//2, tableHeight//2 + margin))
+    screen.blit(TwoText, ((left_2 + left_3) // 2,tableHeight//2 + margin))
 
-    screen.blit(ThreeText, ((right_3 + right_4) // 2, screenHeight // 2))
-    screen.blit(ThreeText, ((left_3 + left_4) // 2, screenHeight // 2))
+    screen.blit(ThreeText, ((right_3 + right_4) // 2, tableHeight//2 + margin))
+    screen.blit(ThreeText, ((left_3 + left_4) // 2, tableHeight//2 + margin))
 
-    screen.blit(FourText, ((right_4 + screenWidth-margin) // 2, screenHeight // 2))
-    screen.blit(FourText, ((margin + left_4) // 2, screenHeight // 2))
+    screen.blit(FourText, ((right_4 + tableWidth+margin) // 2, tableHeight//2 + margin))
+    screen.blit(FourText, ((margin + left_4) // 2, tableHeight//2 + margin))
+
+# def drawBoard(screen,screenWidth,screenHeight,margin):
+#     ##draws the underlying board
+#     pygame.draw.rect(screen, (245, 225, 169), pygame.Rect(margin, margin, screenWidth - 2 * margin, screenHeight - 2 * margin))
+#
+#     ##draws the left side point regions
+#     pygame.draw.line(screen, (255,0,0), (left_1,margin), (left_1,screenHeight-margin))
+#     pygame.draw.line(screen, (0,0,0), (left_2,margin), (left_2,screenHeight-margin))
+#     pygame.draw.line(screen, (0,0,0), (left_3,margin), (left_3,screenHeight-margin))
+#     pygame.draw.line(screen, (0,0,0), (left_4,margin), (left_4,screenHeight-margin))
+#
+#     ##draws the right side point regions
+#     pygame.draw.line(screen, (0,0,0), (right_4,margin), (right_4,screenHeight-margin))
+#     pygame.draw.line(screen, (0,0,0), (right_3,margin), (right_3,screenHeight-margin))
+#     pygame.draw.line(screen, (0,0,0), (right_2,margin), (right_2,screenHeight-margin))
+#     pygame.draw.line(screen, (255, 0, 0), (right_1,margin), (right_1,screenHeight-margin))
+#
+#     ##putting the labels
+#     tableFont = pygame.font.SysFont("Comic Sans MS", 30)
+#
+#     OneText = tableFont.render("1",False,(0,0,0))
+#     TwoText = tableFont.render("2", False, (0,0,0))
+#     ThreeText = tableFont.render("3", False, (0,0,0))
+#     FourText = tableFont.render("4", False, (0,0,0))
+#     screen.blit(OneText, ((right_1+right_2)//2, screenHeight//2))
+#     screen.blit(OneText, ((left_1+left_2)//2, screenHeight//2))
+#
+#     screen.blit(TwoText, ((right_2+right_3)//2, screenHeight//2))
+#     screen.blit(TwoText, ((left_2 + left_3) // 2, screenHeight // 2))
+#
+#     screen.blit(ThreeText, ((right_3 + right_4) // 2, screenHeight // 2))
+#     screen.blit(ThreeText, ((left_3 + left_4) // 2, screenHeight // 2))
+#
+#     screen.blit(FourText, ((right_4 + screenWidth-margin) // 2, screenHeight // 2))
+#     screen.blit(FourText, ((margin + left_4) // 2, screenHeight // 2))
 
 def writeScore(screen,margin):
     scoreFont = pygame.font.SysFont("Comic Sans MS", 35)
@@ -310,6 +345,10 @@ screenWidth = 1270
 screenHeight = 400
 margin = 30
 
+tableWidth = screenWidth - 2*margin
+tableHeight = 400 - 2*margin
+
+
 ######################################################################################
 ### Defining various properties of the playing field + the playing field itself ######
 ######################################################################################
@@ -387,7 +426,7 @@ while not done:
     if mode == 'play':
         #draw board and pucks
         screen.fill((0, 0, 0))
-        drawBoard(screen,screenWidth,screenHeight,margin)
+        drawBoard(screen,tableWidth,tableHeight,margin)
 
         #aiming the pucks during a play
         if submode == 'aiming':
@@ -395,7 +434,10 @@ while not done:
             mousePos = pygame.mouse.get_pos()
 
             #this is the aiming line. puck will go in this direction with power proportional to length
-            pygame.draw.line(screen,(0,0,0),(newPuck.pos[0],newPuck.pos[1]),(mousePos[0],mousePos[1]))
+            direction = np.array(mousePos) - newPuck.pos
+            aim_len = 100
+            aim_line = aim_len*unitVec(direction) + newPuck.pos
+            pygame.draw.line(screen,(0,0,0),(newPuck.pos[0],newPuck.pos[1]),(round(aim_line[0]),round(aim_line[1])))
 
             #to move the puck up and down when aiming
             if event.type == pygame.KEYDOWN:
@@ -666,7 +708,7 @@ while not done:
     elif mode == 'gameOver':
         #the final arrangement of pucks is shown in the background for players to still see
         screen.fill((0, 0, 0))
-        drawBoard(screen, screenWidth, screenHeight, margin)
+        drawBoard(screen, tableWidth, tableHeight, margin)
         for puck in activePucks:
             drawPuck(screen, puck)
         writeScore(screen, margin)
